@@ -1,0 +1,128 @@
+<html>
+	<head>
+		 <script src="perlin.js"></script> 
+		 <script src="draw.js"></script> 
+     <script src="jquery-3.3.1.min.js"></script>
+	</head>
+
+		<body style="background:url('background.jpg');  background-size: cover; background-position: center; width:100%; height:100%">
+		<p style="color:white;position:absolute">Pick an mp3 file<input type="file" name="file"></p>
+		<canvas class="inner" id="myCanvas" width="640" height="640" ></canvas>
+		<style>
+
+
+
+.inner {
+  display: table;
+  margin: 0 auto;
+}
+	</style>
+
+
+		<script>
+			var myCanvas;	
+			var time = 0;
+			var isPlaying = false;
+			var context = null;
+			var source = null;
+			var analyser = null;
+			var freqArray = null; 						
+			var dataArray = null;
+
+       function updateSoundData(){
+         	if(isPlaying) {
+   				analyser.getByteFrequencyData(freqArray);
+   				analyser.getByteTimeDomainData(dataArray);
+         	}
+         }
+
+
+			function playSound(data) {
+				context.decodeAudioData(data, function(buffer) {
+					source.buffer = buffer;
+					source.loop = true;
+					source.start(0);
+  				isPlaying = true;
+				});
+			}
+
+			function initWebAudio() {
+				try {
+					// Fix up for prefixing
+					window.AudioContext = window.AudioContext||window.webkitAudioContext;
+					context = new AudioContext();
+					source = context.createBufferSource(); 
+					analyser = context.createAnalyser();
+					source.connect(analyser); 
+					analyser.connect(context.destination); 
+
+					freqArray = new Uint8Array(analyser.frequencyBinCount); 						
+					dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+					source.onended = function(event) {
+  						isPlaying = false;
+					}					
+
+
+				}
+				catch(e) {
+					alert('Web Audio API is not supported in this browser');
+				}
+			}
+
+			function onError(event) {
+				console.log("error", event);				
+			}
+
+
+
+			$(document).ready(function() {
+				myCanvas = loadCanvasById("myCanvas");
+				initWebAudio();
+
+				function update(progress){
+					time += progress;
+				}
+
+				function draw() {
+			   updateSoundData();
+					clearCanvas(myCanvas.context, myCanvas.canvas); 
+					//drawPerlinToCanvas(myCanvas.context, myCanvas.canvas, time); 
+					for(var i=0; i < 128; ++i) {
+						drawSpherePerlinToCanvas(myCanvas.context, myCanvas.canvas, time/32+i,dataArray,freqArray,isPlaying);
+					}
+				}
+
+				function loop(timestamp) {
+					var progress = timestamp - lastRender;
+
+					update(progress);
+					draw();
+
+					lastRender = timestamp;
+					window.requestAnimationFrame(loop);
+				}
+				var lastRender = 0;
+				window.requestAnimationFrame(loop);
+
+
+				$("input:file").change(function (){
+					var file = $(this)[0].files[0];
+					if (file) {
+						var reader = new FileReader();
+						reader.readAsArrayBuffer(file);
+						reader.onload = function(e) {
+							var arrayBuffer = e.target.result;
+							playSound(arrayBuffer);
+						};
+					}
+					});
+				});
+	
+
+		
+
+
+		</script>
+	</body>
+</html>
