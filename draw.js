@@ -40,13 +40,13 @@ function drawPerlinToCanvas(context, canvas, time) {
 	var imgData = context.createImageData(canvas.width, canvas.height);
 	var data = imgData.data;
 
-	var cp = canvas.width;
+	var cp = Math.min(canvas.width, canvas.height)/8;
 
 	for (var x = 0; x < canvas.width; x++) {
 	  for (var y = 0; y < canvas.height; y++) {
-			var cell = 512;
 
-	    var value = myNoise3dx(x, y, time/32,cp);
+
+	    var value = myNoise3dx(x, y, time/128,cp);
 			var contrast = 0.1;
 
 			if(value<contrast){
@@ -63,7 +63,6 @@ function drawPerlinToCanvas(context, canvas, time) {
 }
 
 function getPoint(cx,cy,cr,perc, time,dataArray,freqArray,isPlaying) {
-	var sp = 256;	
 	var i0 = parseInt(scale(perc,0,1,0, freqArray.length-1));
 	var i1 = parseInt(scale(1-perc,0,1,0, freqArray.length-1));
 
@@ -71,24 +70,27 @@ function getPoint(cx,cy,cr,perc, time,dataArray,freqArray,isPlaying) {
 	var f1 = freqArray[i1];
 	var f = (f0+f1)*0.2;
 	if (isNaN(f)) {
-		console.log(perc ,i0,f0,i1,f1);
 		f = 0.0;
 	}
 
 
 	var sx = Math.sin(perc*2*Math.PI);
 	var sy = Math.cos(perc*2*Math.PI);
-	var sr = myNoise3dx(sp*sx, sp*sy, time,sp);
+	var sr = myNoise3dx(sx, sy, (time+f/256), 1.0);
 
 
 	return {
-		x: cx + (cr+sr*cr*2+f)*sx,			
-		y: cy + (cr+sr*cr*2+f)*sy
+		x: cx + (4*sr*cr)*sx,			
+		y: cy + (4*sr*cr)*sy
 	};
 }
 
 function drawSpherePerlinToCanvas(context, canvas, time,dataArray,freqArray,isPlaying) {
-		context.strokeStyle = 'rgba(255,255,255,0.05)';
+		var colorR = parseInt(myNoise3dx(time,0,0,1.0)*255);
+		var colorG = parseInt(myNoise3dx(0,time,0,1.0)*255);
+		var colorB = parseInt(myNoise3dx(0,0,time,1.0)*255);		
+
+		context.strokeStyle = 'rgba('+colorR+','+ colorG +','+colorB+',0.1)';
 		context.beginPath();
 
 		var cx = canvas.width/2; 
@@ -101,5 +103,6 @@ function drawSpherePerlinToCanvas(context, canvas, time,dataArray,freqArray,isPl
 			init ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y);
 			init = false;		
 		}
+
 		context.stroke();
 }

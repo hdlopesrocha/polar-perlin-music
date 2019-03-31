@@ -1,13 +1,13 @@
 <html>
 	<head>
-		 <script src="perlin.js"></script> 
+		 <script src="vendor/perlin.js"></script> 
 		 <script src="draw.js"></script> 
-     <script src="jquery-3.3.1.min.js"></script>
+     <script src="vendor/jquery-3.3.1.min.js"></script>
 	</head>
 
 		<body style="background:url('background.jpg');  background-size: cover; background-position: center; width:100%; height:100%">
 		<p style="color:white;position:absolute">Pick an mp3 file<input type="file" name="file"></p>
-		<canvas class="inner" id="myCanvas" width="640" height="640" ></canvas>
+		<canvas class="inner" id="myCanvas" width="480" height="480" ></canvas>
 		<style>
 
 
@@ -87,9 +87,9 @@
 				function draw() {
 			   updateSoundData();
 					clearCanvas(myCanvas.context, myCanvas.canvas); 
-					//drawPerlinToCanvas(myCanvas.context, myCanvas.canvas, time); 
+					// drawPerlinToCanvas(myCanvas.context, myCanvas.canvas, time); 
 					for(var i=0; i < 128; ++i) {
-						drawSpherePerlinToCanvas(myCanvas.context, myCanvas.canvas, time/32+i,dataArray,freqArray,isPlaying);
+						drawSpherePerlinToCanvas(myCanvas.context, myCanvas.canvas, time/4096+i/256,dataArray,freqArray,isPlaying);				
 					}
 				}
 
